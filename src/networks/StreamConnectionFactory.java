@@ -65,6 +65,8 @@ public class StreamConnectionFactory {
 
         // run it
         Thread socketFactoryThread = new Thread(socketFactory);
+        this.checkClientAndServer();
+
         socketFactoryThread.start();
         try {
             socketFactoryThread.join();
@@ -88,6 +90,8 @@ public class StreamConnectionFactory {
      */
     public void connect(String hostName, int waitInSeconds, int numberAttempts) {
         this.connectionAttemptThread = new ConnectionAttemptsThread(hostName, waitInSeconds, numberAttempts);
+        this.checkClientAndServer();
+
         this.connectionAttemptThread.start();
     }
 
