@@ -1,7 +1,5 @@
 package networks;
 
-import net.sharksystem.utils.Log;
-
 import java.io.*;
 
 /**
@@ -13,6 +11,8 @@ public class ExamplePeer implements ConnectionCreatedListener, Runnable {
     private final int port;
     private final String name;
     private final boolean asServer;
+
+    private boolean setupProblem = false;
 
     public ExamplePeer(String name, int port, boolean asServer) {
         this.name = name;
@@ -69,6 +69,10 @@ public class ExamplePeer implements ConnectionCreatedListener, Runnable {
         }
     }
 
+    public boolean isSetupProblem() {
+        return this.setupProblem;
+    }
+
     @Override
     public void run() {
         // create or offer a connection - our factory will help
@@ -86,6 +90,7 @@ public class ExamplePeer implements ConnectionCreatedListener, Runnable {
             }
         } catch (IOException e) {
             System.err.println("problems during connection establishment: " + e.getLocalizedMessage());
+            this.setupProblem = true; // good guess
         }
     }
 }

@@ -1,0 +1,9 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="NWAppTemplate:jar">
+    <output-path>$PROJECT_DIR$/out/</output-path>
+    <root id="archive" name="PeerExample.jar">
+      <element id="module-output" name="NWAppTemplate" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/libs/SharkUtils.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
