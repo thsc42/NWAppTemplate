@@ -14,16 +14,12 @@ public class ExampleMain {
         ExamplePeer peer = new ExamplePeer(aKindOfName, port, true); // try as server
         Thread peerThread = new Thread(peer);
 
-        try {
-            peerThread.start();
-            Thread.sleep(100);
-        }
-        catch(Exception e) {
-            System.out.println("problem - try to recover, though: " + e.getLocalizedMessage());
-        }
+        peerThread.start();
 
         // wait a moment
+        Thread.sleep(100);
 
+        // okay - or not
         if(peer.isSetupProblem()) {
             // try as client
             System.out.println("failed to start - other peer was most probably faster - try as client");
