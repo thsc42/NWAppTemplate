@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="SharkUtils">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/libs/SharkUtils.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
