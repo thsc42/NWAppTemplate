@@ -34,6 +34,6 @@ public class ExampleMain {
             System.err.println("there seems to be a problem. Check your logs.");
         }
 
-        Thread.sleep(2000);
+        peerThread.join();
     }
 }
