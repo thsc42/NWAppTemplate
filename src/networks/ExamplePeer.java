@@ -75,12 +75,12 @@ public class ExamplePeer implements ConnectionCreatedListener, Runnable {
 
     @Override
     public void run() {
-        // create or offer a connection - our factory will help
-        StreamConnectionFactory factory = new StreamConnectionFactory(this.port);
-        // this peer listens for a new connection
-        factory.addConnectionListener(this);
-
         try {
+            // create or offer a connection - our factory will help
+            StreamConnectionFactory factory = new StreamConnectionFactory(this.port);
+            // this peer listens for a new connection
+            factory.addConnectionListener(this);
+
             if(this.asServer) {
                 // open a connection
                     factory.open(false); // just one connection
@@ -88,7 +88,7 @@ public class ExamplePeer implements ConnectionCreatedListener, Runnable {
                 // try to connect - use localhost, try 3 times, wait a second
                 factory.connect("localhost", 1, 3);
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             System.err.println("problems during connection establishment: " + e.getLocalizedMessage());
             this.setupProblem = true; // good guess
         }

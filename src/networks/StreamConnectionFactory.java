@@ -10,6 +10,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * This class provides ways to set up a stream connection. The actual protocol remains opaque to developers.
@@ -20,6 +21,7 @@ import java.util.List;
  */
 public class StreamConnectionFactory {
     private final int port;
+    private final int bitFailureRate;
     private ServerSocket serverSocket;
     private List<ConnectionCreatedListener> connectionCreatedListeners = new ArrayList<>();
     private ConnectionAttemptsThread connectionAttemptThread = null;
@@ -28,8 +30,15 @@ public class StreamConnectionFactory {
      * Produce a tcp factory object.
      * @param port port number - either local port or remote port to connect to.
      */
-    public StreamConnectionFactory(int port) {
+
+    public StreamConnectionFactory(int port, int bitFailureRate) throws Exception {
         this.port = port;
+
+        if(bitFailureRate < 0) throw new Exception("failure rate cannot be a negative number");
+        this.bitFailureRate = bitFailureRate;
+    }
+    public StreamConnectionFactory(int port) throws Exception {
+        this(port, 0);
     }
 
     public void addConnectionListener(ConnectionCreatedListener connectionCreatedListener) {
@@ -135,6 +144,11 @@ public class StreamConnectionFactory {
 
     private void notifyConnectionCreatedListeners(InputStream is, OutputStream os,
               boolean asServer, String otherPeerAddress) {
+
+        if(this.bitFailureRate > 0) {
+            // TODO
+        }
+
         for(ConnectionCreatedListener listener : this.connectionCreatedListeners) {
             listener.connectionCreated(is, os, asServer, otherPeerAddress);
         }
@@ -144,6 +158,66 @@ public class StreamConnectionFactory {
         if(this.serverSocket != null && this.connectionAttemptThread != null) {
             Log.writeLog(this, "This peer is open for connections and is about creating connections." +
                     "Multiple connections to another peer could be established - be careful what you are doing.");
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    //                          wrapper to simulate network failure                          //
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
+    private class InputFailureSimulatorWrapper extends InputStream {
+        private final InputStream sourceIS;
+        private final int bitFailureRate;
+        private final Random random;
+
+        InputFailureSimulatorWrapper(InputStream sourceIS, int bitFailureRate) {
+             this.sourceIS = sourceIS;
+             this.bitFailureRate = bitFailureRate;
+             this.random = new Random(System.currentTimeMillis());
+        }
+
+        @Override
+        public int read() throws IOException {
+            int readByte = this.sourceIS.read();
+
+            // no failure
+            if (bitFailureRate <= 0) return readByte;
+
+            if (this.random.nextInt() % bitFailureRate == 0) {
+                // produce a bit failure
+                int mask = 1;
+
+                // what position
+                int position = this.random.nextInt() % 7;
+                mask = mask << position;
+                boolean bitSet = (readByte & mask) != 0;
+
+                // produce new mask
+                if(position == 7) {
+                    mask = bitSet ? 1 : 0;
+                } else {
+                    mask = bitSet ? 0 : 1;
+                }
+                for(int i = 6; i <= 0; i--) {
+                    mask = mask << 1; // shift and add
+                    if(i == position) {
+                        mask = bitSet ? mask+1 : mask;
+                    } else {
+                        mask = bitSet ? mask : mask+1;
+                    }
+                }
+
+                if(bitSet) {
+                    // reset bit
+                    readByte = readByte & mask;
+
+                } else {
+                    // set bit
+                    readByte = readByte | mask;
+                }
+            } // else - do not produce bit failure
+
+            return readByte;
         }
     }
 }
