@@ -1,5 +1,7 @@
 package networks;
 
+import networks.utils.StreamConnectionFactory;
+
 import java.io.*;
 
 /**

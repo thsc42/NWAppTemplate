@@ -1,7 +1,8 @@
-package networks;
+package networks.utils;
 
 import net.sharksystem.utils.Log;
 import net.sharksystem.utils.tcp.SocketFactory;
+import networks.ConnectionCreatedListener;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,7 +11,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 /**
  * This class provides ways to set up a stream connection. The actual protocol remains opaque to developers.
@@ -21,7 +21,7 @@ import java.util.Random;
  */
 public class StreamConnectionFactory {
     private final int port;
-    private final int bitFailureRate;
+    private final int byteFailureRate;
     private ServerSocket serverSocket;
     private List<ConnectionCreatedListener> connectionCreatedListeners = new ArrayList<>();
     private ConnectionAttemptsThread connectionAttemptThread = null;
@@ -29,13 +29,17 @@ public class StreamConnectionFactory {
     /**
      * Produce a tcp factory object.
      * @param port port number - either local port or remote port to connect to.
+     * @param byteFailureRate This implementation simulates a non-perfect channel. Data can get lost.
+     *     Complete bytes can get lost (it is easier to implement than dealing with bits.
+*          Principles are the same, though.). It is a probability: 100 == 100% (any package gets lost),
+     *                             0 == 0% (no package lost)
      */
 
-    public StreamConnectionFactory(int port, int bitFailureRate) throws Exception {
+    public StreamConnectionFactory(int port, int byteFailureRate) throws Exception {
         this.port = port;
 
-        if(bitFailureRate < 0) throw new Exception("failure rate cannot be a negative number");
-        this.bitFailureRate = bitFailureRate;
+        if(byteFailureRate < 0) throw new Exception("failure rate cannot be a negative number");
+        this.byteFailureRate = byteFailureRate;
     }
     public StreamConnectionFactory(int port) throws Exception {
         this(port, 0);
@@ -145,8 +149,9 @@ public class StreamConnectionFactory {
     private void notifyConnectionCreatedListeners(InputStream is, OutputStream os,
               boolean asServer, String otherPeerAddress) {
 
-        if(this.bitFailureRate > 0) {
-            // TODO
+        if(this.byteFailureRate > 0) {
+            // wrap it
+            is = new InputFailureSimulatorWrapper(is, this.byteFailureRate);
         }
 
         for(ConnectionCreatedListener listener : this.connectionCreatedListeners) {
@@ -165,59 +170,4 @@ public class StreamConnectionFactory {
     //                          wrapper to simulate network failure                          //
     ///////////////////////////////////////////////////////////////////////////////////////////
 
-    private class InputFailureSimulatorWrapper extends InputStream {
-        private final InputStream sourceIS;
-        private final int bitFailureRate;
-        private final Random random;
-
-        InputFailureSimulatorWrapper(InputStream sourceIS, int bitFailureRate) {
-             this.sourceIS = sourceIS;
-             this.bitFailureRate = bitFailureRate;
-             this.random = new Random(System.currentTimeMillis());
-        }
-
-        @Override
-        public int read() throws IOException {
-            int readByte = this.sourceIS.read();
-
-            // no failure
-            if (bitFailureRate <= 0) return readByte;
-
-            if (this.random.nextInt() % bitFailureRate == 0) {
-                // produce a bit failure
-                int mask = 1;
-
-                // what position
-                int position = this.random.nextInt() % 7;
-                mask = mask << position;
-                boolean bitSet = (readByte & mask) != 0;
-
-                // produce new mask
-                if(position == 7) {
-                    mask = bitSet ? 1 : 0;
-                } else {
-                    mask = bitSet ? 0 : 1;
-                }
-                for(int i = 6; i <= 0; i--) {
-                    mask = mask << 1; // shift and add
-                    if(i == position) {
-                        mask = bitSet ? mask+1 : mask;
-                    } else {
-                        mask = bitSet ? mask : mask+1;
-                    }
-                }
-
-                if(bitSet) {
-                    // reset bit
-                    readByte = readByte & mask;
-
-                } else {
-                    // set bit
-                    readByte = readByte | mask;
-                }
-            } // else - do not produce bit failure
-
-            return readByte;
-        }
-    }
 }
