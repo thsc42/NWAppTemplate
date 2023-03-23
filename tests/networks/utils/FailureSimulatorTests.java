@@ -1,5 +1,6 @@
 package networks.utils;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
@@ -32,27 +33,28 @@ public class FailureSimulatorTests {
     public void test1() {
         System.out.println("failure rate 1% ");
         this.testRun(1);
+        Assertions.assertTrue(this.testRun(10) > 0.005);
     }
 
     @Test
     public void test10() {
         System.out.println("failure rate 10% ");
-        this.testRun(10);
+        Assertions.assertTrue(this.testRun(10) > 0.08);
     }
 
     @Test
     public void test50() {
         System.out.println("failure rate 50% ");
-        this.testRun(50);
+        Assertions.assertTrue(this.testRun(50) > 0.4);
     }
 
     @Test
     public void test99() {
         System.out.println("failure rate 99% ");
-        this.testRun(99);
+        Assertions.assertTrue(this.testRun(99) > 0.9);
     }
 
-    public void testRun(int byteFailureRate) {
+    public double testRun(int byteFailureRate) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         // fill with some data
         for(int i = 0; i < NUMBER_DATA; i++) {
@@ -63,23 +65,20 @@ public class FailureSimulatorTests {
         ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
 
         // wrap it
-        InputStream is = new InputFailureSimulatorWrapper(bais, byteFailureRate);
+        InputStream is = new InputStreamFailureSimulator(byteFailureRate, true, bais);
 
         int failureTotalNumber = 0;
-        for(int i = 0; i < NUMBER_DATA; i++) {
+        for(int expectedInt = 0; expectedInt < NUMBER_DATA; expectedInt++) {
             try {
                 int value = is.read();
-                while(value != i) {
-                    failureTotalNumber++;
-                    i++;
-                    if(i == NUMBER_DATA) break;
-                } // in sync again
+                if(value != expectedInt) failureTotalNumber++;
             } catch (IOException e) {
-                System.out.println("IOException at i == " + i);
+                System.out.println(e.getLocalizedMessage());
                 break;
             }
         }
 
         System.out.println("failure: " + failureTotalNumber + " / " + NUMBER_DATA);
+        return failureTotalNumber / NUMBER_DATA;
     }
 }

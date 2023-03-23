@@ -1,7 +1,7 @@
 <component name="libraryTable">
-  <library name="SharkUtils">
+  <library name="ASAPJava">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/libs/SharkUtils.jar!/" />
+      <root url="jar://$PROJECT_DIR$/libs/ASAPJava.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

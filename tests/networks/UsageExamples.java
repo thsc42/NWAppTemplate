@@ -3,6 +3,8 @@ package networks;
 import org.junit.jupiter.api.Test;
 
 public class UsageExamples {
+
+
     @Test
     public void usage1() throws InterruptedException {
         ExamplePeer alicePeer = new ExamplePeer("Alice", 3333, true); // asServer

@@ -1,0 +1,9 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="NetworkAppUtils:jar">
+    <output-path>$PROJECT_DIR$/out/</output-path>
+    <root id="archive" name="NetworksAppUtils.jar">
+      <element id="module-output" name="NWAppTemplate" />
+      <element id="library" level="project" name="ASAPJava" />
+    </root>
+  </artifact>
+</component>

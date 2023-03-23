@@ -14,7 +14,7 @@ import java.util.List;
 
 /**
  * This class provides ways to set up a stream connection. The actual protocol remains opaque to developers.
- * (Spoiler: It will be TCP (in most cases).
+ * (Spoiler: It will be TCP (in most cases)).
  *
  * This class provide means to establish unreliable connection - connections can break down / bit errors can
  * happen.
@@ -22,6 +22,7 @@ import java.util.List;
 public class StreamConnectionFactory {
     private final int port;
     private final int byteFailureRate;
+    private final boolean gauss;
     private ServerSocket serverSocket;
     private List<ConnectionCreatedListener> connectionCreatedListeners = new ArrayList<>();
     private ConnectionAttemptsThread connectionAttemptThread = null;
@@ -29,20 +30,21 @@ public class StreamConnectionFactory {
     /**
      * Produce a tcp factory object.
      * @param port port number - either local port or remote port to connect to.
-     * @param byteFailureRate This implementation simulates a non-perfect channel. Data can get lost.
+     * @param bitFailureRate This implementation simulates a non-perfect channel. Data can get lost.
      *     Complete bytes can get lost (it is easier to implement than dealing with bits.
 *          Principles are the same, though.). It is a probability: 100 == 100% (any package gets lost),
      *                             0 == 0% (no package lost)
      */
 
-    public StreamConnectionFactory(int port, int byteFailureRate) throws Exception {
+    public StreamConnectionFactory(int port, int bitFailureRate, boolean gauss) throws Exception {
         this.port = port;
 
-        if(byteFailureRate < 0) throw new Exception("failure rate cannot be a negative number");
-        this.byteFailureRate = byteFailureRate;
+        if(bitFailureRate < 0) throw new Exception("failure rate cannot be a negative number");
+        this.byteFailureRate = bitFailureRate;
+        this.gauss = gauss;
     }
     public StreamConnectionFactory(int port) throws Exception {
-        this(port, 0);
+        this(port, 0, true);
     }
 
     public void addConnectionListener(ConnectionCreatedListener connectionCreatedListener) {
@@ -69,7 +71,7 @@ public class StreamConnectionFactory {
     }
 
     /**
-     * Provide an open port other peers can connect to.
+     * Provide an open port.
      * @param multipleConnections true - port remains open after peer connected / false - port is closed
      * @throws IOException cannot create server port - other potential problems are handled
      */
@@ -151,7 +153,7 @@ public class StreamConnectionFactory {
 
         if(this.byteFailureRate > 0) {
             // wrap it
-            is = new InputFailureSimulatorWrapper(is, this.byteFailureRate);
+            is = new InputStreamFailureSimulator(this.byteFailureRate, this.gauss, is);
         }
 
         for(ConnectionCreatedListener listener : this.connectionCreatedListeners) {
