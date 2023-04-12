@@ -12,9 +12,11 @@ public class AppLogicFileCopy implements ConnectionCreatedListener {
     }
 
     void copy(OutputStream os, InputStream is) throws IOException {
-        while(is.available() > 0) {
-            int value = is.read();
-            os.write(value);
+        int value = 0;
+        while(value > -1) {
+            value = is.read();
+            if(value > -1) os.write(value);
+            else os.close();
         }
     }
 
@@ -45,6 +47,7 @@ public class AppLogicFileCopy implements ConnectionCreatedListener {
 
         try {
             this.copy(targetOS, sourceIS);
+            sourceIS.close();
         } catch (IOException e) {
             System.err.println(e.getLocalizedMessage());
         }

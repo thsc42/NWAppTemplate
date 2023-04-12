@@ -8,18 +8,17 @@ public class FileCopyEndpoint {
 
     public static void main(String[] args) throws Exception {
         ConnectionCreatedListener appLogicFileCopy = null;
-        if(args.length < 1) {
-            System.err.println("missing arguments - at least file name required");
+        if(args.length < 1 || args.length > 2) {
+            System.err.println("wrng number of arguments");
             System.err.println("variant 1: one parameter: [file] - stores received data into a file");
-            System.err.println("variant 2: two parameters: [file host] - copy data from file to another process on host");
-        } else if(args.length == 1) {
-            System.out.println("run as server on port " + PORTNUMBER + " store file under name " + args[0]);
-            appLogicFileCopy = new AppLogicFileCopy(args[0]);
-        } else if(args.length == 2) {
-            System.out.println("try to connect to host " + args[0] + " to copy file " + args[1]);
-            appLogicFileCopy = new AppLogicFileCopy(args[1]);
+            System.err.println("variant 2: two parameters: [file host] - copy data from existing(!) not empty file to another process on host");
         } else {
-            System.err.println("too much parameters");
+            appLogicFileCopy = new AppLogicFileCopy(args[0]);
+            if(args.length == 1) {
+                System.out.println("run as server on port " + PORTNUMBER + " store file under name " + args[0]);
+            } else {
+                System.out.println("try to connect to host " + args[1] + " to copy file " + args[0]);
+            }
         }
 
         if(appLogicFileCopy != null) {
@@ -27,8 +26,8 @@ public class FileCopyEndpoint {
             StreamConnectionFactory streamConnectionFactory = new StreamConnectionFactory(PORTNUMBER);
             streamConnectionFactory.addConnectionListener(appLogicFileCopy);
 
-            if(args.length > 1) streamConnectionFactory.open(false);
-            else streamConnectionFactory.connect(args[0], 1, 20);
+            if(args.length == 1) streamConnectionFactory.open(false);
+            else streamConnectionFactory.connect(args[1], 1, 20);
         }
     }
 }
