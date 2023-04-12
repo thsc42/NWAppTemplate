@@ -9,8 +9,8 @@ public class Endpoint {
         StreamConnectionFactory streamConnectionFactory = new StreamConnectionFactory(PORTNUMBER);
 
 //        streamConnectionFactory.addConnectionListener(new AppLogicPrimeNumberExchange());
-//        streamConnectionFactory.addConnectionListener(new AppLogicChat());
-        streamConnectionFactory.addConnectionListener(new AppLogicDataExchange());
+        streamConnectionFactory.addConnectionListener(new AppLogicChat());
+//        streamConnectionFactory.addConnectionListener(new AppLogicDataExchange());
 
         if(args.length < 1) {
             System.out.println("run as server and accept connection requests on port " + PORTNUMBER);

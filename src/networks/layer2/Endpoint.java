@@ -10,6 +10,10 @@ public class Endpoint {
         StreamConnectionFactory streamConnectionFactory = new StreamConnectionFactory(PORTNUMBER, 20, true);
 //        StreamConnectionFactory streamConnectionFactory = new StreamConnectionFactory(PORTNUMBER);
 
+        // expect
+
+
+
         streamConnectionFactory.addConnectionListener(new HandleBitFailure());
 
         if(args.length < 1) {
